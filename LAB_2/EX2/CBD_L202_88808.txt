@@ -1,0 +1,62 @@
+// NMEC: 12345
+#1
+db.rest.find()
+#2
+db.rest.find({},{"_id":1,"nome":1,"localidade":1,"gastronomia":1})
+#3
+db.rest.find({},{"_id":0,"nome":1,"localidade":1,"gastronomia":1,"address.zipcode":1})
+#4
+db.rest.aggregate([{$match:{"localidade":"Bronx"}},{$group : {_id : "$localidade", total : {$sum : 1}}}])
+#5
+db.getCollection('rest').find({"localidade":"Bronx"}).limit(5).pretty()
+#6
+// Match has to be after the $group, so the TotalGrade field is created
+db.getCollection('rest').aggregate([
+    
+        {$group: {
+            _id: {
+                id: "$_id",
+                Localidade:"$localidade",
+                
+                TotalGrade: {
+                "$sum": "$grades.score"
+                }
+            },
+            
+            }
+        },
+        {$match:{"_id.TotalGrade":{$gte:85}}}
+
+    
+])
+#7
+db.getCollection('rest').aggregate([
+    
+        {$group: {
+            _id: {
+                id: "$_id",
+                Localidade:"$localidade",
+                
+                TotalGrade: {
+                "$sum": "$grades.score"
+                }
+            },
+            
+            }
+        },
+        {$match:{"_id.TotalGrade":{$gte:80,$lte:100}}}
+
+    
+])
+#8
+// To evaluate a specific element in the array we pass the index like this "address.coord.index_number"
+db.getCollection('rest').find({"address.coord.0":{$lt:-95.7}})
+#9
+db.getCollection('rest').find({"address.coord.0":{$lt:-65},"grades.score":{$gt:70},"gastronomia":{$ne:"American"}})
+#10
+db.getCollection('rest').find({nome:/Wil/},{restaurant_id:1,nome:1,localidade:1,gastronomia:1})
+
+
+
+
+
