@@ -80,33 +80,78 @@ db.getCollection('rest').find({$and:[{localidade:"Brooklyn","grades.grade":"A",g
 #20
 db.rest.aggregate([{$group : {_id : "$localidade", total : {$sum : 1}}}])
 #21
-//acabar
-
-db.getCollection('rest').aggregate([
+//check with teacher
+db.rest.aggregate([
     
     {$group: {
         _id: {
             id: "$_id",
             
-           avgQuantity: { $avg: "$grades.score" }
+           avgScore: { $avg: "$grades.score" }
         },
         
     }
     },
+    {$match:{"_id.avgScore":{$gt:30}}}
 
     
 ])
+#22
+db.rest.aggregate([
     
+        {$group: {
+            _id: {
+                id: "$_id",
+                Localidade:"$localidade",
+                gastronomia:"$gastronomia",
+                coord:"$address.coord",
+                TotalScore: {
+                "$sum": "$grades.score"
+                }
+            },
+            
+            }
+        },
+        {$match:{"_id.TotalScore":{$gt:70},"_id.gastronomia":"American","_id.coord.0":{$lt:-65}}}
+
+    
+])
+#23
+db.rest.aggregate([{$group : {_id : "$gastronomia", total : {$sum : 1}}},{$sort:{"total":-1}}])
+#24
+db.rest.aggregate([{$group : {_id : {_id:"$address.rua",gastronomia:"$gastronomia"}}},        {$match:{"_id._id":"Flatbush Avenue"}},{$count: "total_restaurants"}])
+#25
+
+db.rest.aggregate(
+   [
+     {
+       $group:
+         {
+           _id:"$address.rua" ,
+           count: { $sum: 1 }
+         }
+     }
+   ]
+)
+#26 Apresente o restaurante por localidade com score cumulativo máximo
+#27 Apresente o restaurante que teve o score cumulativo minimo
+#28 Apresente os restaurantes ordenados por ordem descrescente do score cumulativo
 db.getCollection('rest').aggregate([
     
-    {$group: {
-        _id: "$_id",
-        avgQuantity: { $avg: "$grades.score" },
-    }
-    },
-
+        {$group: {
+            _id: {
+                id: "$_id",
+                Localidade:"$localidade",
+                
+                TotalGrade: {
+                "$sum": "$grades.score"
+                }
+            },
+            
+            }
+        },
+        {$sort:{"_id.TotalGrade":-1}}
     
 ])
-
-
-
+#29 Liste o nome e as avaliações dos restaurantes que obtiveram uma avaliação com um grade "A" e um score 10 entre a data "2014-10-01T00: 00: 00Z" e a data "2014-10-09T00: 00: 00Z"
+db.getCollection('rest').find({"grades":{$elemMatch:{score:10,grade:"A",date:{$gte:ISODate("2014-10-01T00:00:00Z"),$lte:ISODate("2014-10-09T00:00:00Z")}} }})
