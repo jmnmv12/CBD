@@ -93,6 +93,15 @@ Equality operator:
 db.getCollection('movies').find({"by":"tutorials point"}).pretty()
 ```
 
+Like operator:
+
+ ```
+ db.getCollection('movies').find({"by":/^tut/}) //Like "tut%"
+ db.getCollection('movies').find({"by":/tut$/}) //Like "%tut"
+ db.getCollection('movies').find({"by":/tut/}) //Like "tut"
+
+```
+
 Lesser than and lesser than equals:
 
  ```

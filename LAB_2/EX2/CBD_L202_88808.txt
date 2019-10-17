@@ -30,6 +30,7 @@ db.getCollection('rest').aggregate([
     
 ])
 #7
+// In this version I summed all the scores 
 db.getCollection('rest').aggregate([
     
         {$group: {
@@ -48,15 +49,64 @@ db.getCollection('rest').aggregate([
 
     
 ])
+//This is the correct version
+db.getCollection('rest').find({"grades":{$elemMatch:{score:{$gte:80,$lte:100}} }})
+
 #8
 // To evaluate a specific element in the array we pass the index like this "address.coord.index_number"
 db.getCollection('rest').find({"address.coord.0":{$lt:-95.7}})
 #9
 db.getCollection('rest').find({"address.coord.0":{$lt:-65},"grades.score":{$gt:70},"gastronomia":{$ne:"American"}})
 #10
-db.getCollection('rest').find({nome:/Wil/},{restaurant_id:1,nome:1,localidade:1,gastronomia:1})
+db.getCollection('rest').find({nome:/^Wil/},{restaurant_id:1,nome:1,localidade:1,gastronomia:1})
+#11
+db.getCollection('rest').find({localidade:"Bronx",$or: [{gastronomia: "American"}, {gastronomia: "Chinese"}]},{nome:1,localidade:1,gastronomia:1})
+#12
+db.getCollection('rest').find({$or: [{localidade: "Staten Island"}, {localidade: "Queens"}, {localidade: "Bronx"}, {localidade: "Brooklyn"}]},{restaurant_id:1,nome:1,localidade:1,gastronomia:1})
+#13
+db.getCollection('rest').find({"grades.score":{$not: {$gt: 3}}},{nome:1,localidade:1,"grades.score":1,gastronomia:1})
+#14
+db.getCollection('rest').find({"grades":{$elemMatch:{score:10,grade:"A",date:ISODate("2014-08-11T00:00:00Z")} }})
+#15
+db.getCollection('rest').find({$and:[{"grades.1.grade":"A","grades.1.date":ISODate("2014-08-11T00:00:00Z")}]},{restaurant_id:1,nome:1,"grades.score":1})
+#16
+db.getCollection('rest').find({$and:[{"address.coord.1":{$gt:42,$lte:52}}]},{restaurant_id:1,nome:1,address:1})
+#17
+db.getCollection('rest').find({},{nome:1}).sort({nome:1})
+#18
+db.getCollection('rest').find({},{nome:1,gastronomia:1,localidade:1}).sort({gastronomia:1,localidade:-1})
+#19
+db.getCollection('rest').find({$and:[{localidade:"Brooklyn","grades.grade":"A",gastronomia:{$ne:"American"}}]},{nome:1,gastronomia:1,localidade:1,grades:1}).sort({gastronomia:1})
+#20
+db.rest.aggregate([{$group : {_id : "$localidade", total : {$sum : 1}}}])
+#21
+//acabar
 
+db.getCollection('rest').aggregate([
+    
+    {$group: {
+        _id: {
+            id: "$_id",
+            
+           avgQuantity: { $avg: "$grades.score" }
+        },
+        
+    }
+    },
 
+    
+])
+    
+db.getCollection('rest').aggregate([
+    
+    {$group: {
+        _id: "$_id",
+        avgQuantity: { $avg: "$grades.score" },
+    }
+    },
+
+    
+])
 
 
 
