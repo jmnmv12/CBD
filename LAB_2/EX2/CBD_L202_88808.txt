@@ -10,25 +10,7 @@ db.rest.aggregate([{$match:{"localidade":"Bronx"}},{$group : {_id : "$localidade
 #5
 db.getCollection('rest').find({"localidade":"Bronx"}).limit(5).pretty()
 #6
-// Match has to be after the $group, so the TotalGrade field is created
-db.getCollection('rest').aggregate([
-    
-        {$group: {
-            _id: {
-                id: "$_id",
-                Localidade:"$localidade",
-                
-                TotalGrade: {
-                "$sum": "$grades.score"
-                }
-            },
-            
-            }
-        },
-        {$match:{"_id.TotalGrade":{$gte:85}}}
-
-    
-])
+db.rest.find({ "grades.score": {$gte:85} })
 #7
 // In this version I summed all the scores 
 db.getCollection('rest').aggregate([
@@ -66,6 +48,7 @@ db.getCollection('rest').find({$or: [{localidade: "Staten Island"}, {localidade:
 #13
 db.getCollection('rest').find({"grades.score":{$not: {$gt: 3}}},{nome:1,localidade:1,"grades.score":1,gastronomia:1})
 #14
+//Use elemMatch to check each element for every condition
 db.getCollection('rest').find({"grades":{$elemMatch:{score:10,grade:"A",date:ISODate("2014-08-11T00:00:00Z")} }})
 #15
 db.getCollection('rest').find({$and:[{"grades.1.grade":"A","grades.1.date":ISODate("2014-08-11T00:00:00Z")}]},{restaurant_id:1,nome:1,"grades.score":1})
@@ -133,8 +116,34 @@ db.rest.aggregate(
      }
    ]
 )
-#26 Apresente o restaurante por localidade com score cumulativo máximo
+#26 Apresente o restaurantes ordenados por ordem crescente do score cumulativo 
+db.rest.aggregate([
+        {$group: {
+            _id: {
+                id: "$_id",
+                localidade: "$localidade",
+                
+                total_score: {
+                $sum: "$grades.score"
+                }
+            },   
+            }
+        },
+        {$sort:{"_id.total_score":-1}} 
+])
 #27 Apresente o restaurante que teve o score cumulativo minimo
+db.rest.aggregate([
+    {$group: {
+        _id: {
+            id: "$_id",
+            
+           total_score: { $sum: "$grades.score" }
+            },  
+        }   
+    },
+    {$sort:{"_id.total_score":1}}, 
+    {$limit: 1}
+])
 #28 Apresente os restaurantes ordenados por ordem descrescente do score cumulativo
 db.getCollection('rest').aggregate([
     
@@ -155,3 +164,6 @@ db.getCollection('rest').aggregate([
 ])
 #29 Liste o nome e as avaliações dos restaurantes que obtiveram uma avaliação com um grade "A" e um score 10 entre a data "2014-10-01T00: 00: 00Z" e a data "2014-10-09T00: 00: 00Z"
 db.getCollection('rest').find({"grades":{$elemMatch:{score:10,grade:"A",date:{$gte:ISODate("2014-10-01T00:00:00Z"),$lte:ISODate("2014-10-09T00:00:00Z")}} }})
+#30
+Liste todos os restaurantes ordenados pelo nome da rua em decrescente.
+db.rest.find().sort( {"address.rua": -1} )
